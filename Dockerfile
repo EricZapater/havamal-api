@@ -29,6 +29,8 @@ WORKDIR /root/
 # Copy the Pre-built binary from the previous stage
 COPY --from=builder /app/havamal-api .
 
+COPY --from=builder /app/migrations ./migrations
+
 # Expose port 8080 to the outside world
 EXPOSE 8080
 
