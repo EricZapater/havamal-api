@@ -41,7 +41,7 @@ func (r *repository) GetAll() ([]Category, error) {
 		return nil, err
 	}
 	defer rows.Close()
-	var categories []Category
+	categories := make([]Category, 0)
 	for rows.Next() {
 		var category Category
 		if err := rows.Scan(&category.ID, &category.Name, &category.Slug, &category.Description, &category.Order, &category.CreatedAt, &category.UpdatedAt); err != nil {
