@@ -9,7 +9,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  # IMAGE_NAME will be set dynamically to ensure lowercase
 
 jobs:
   build-and-push:
@@ -21,6 +21,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Set lower case owner name
+        run: |
+          echo "IMAGE_NAME=${GITHUB_REPOSITORY,,}" >>${GITHUB_ENV}
 
       - name: Log in to the Container registry
         uses: docker/login-action@v3
@@ -61,7 +65,7 @@ jobs:
             # Login to registry
             echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-            docker pull ghcr.io/ericzapater/havamal-api:latest
+            docker pull ghcr.io/${{ github.repository_owner }}/havamal-api:latest
 
             docker compose pull
             docker compose up -d
