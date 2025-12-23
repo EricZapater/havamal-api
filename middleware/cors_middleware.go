@@ -14,6 +14,8 @@ func SetupCORS() gin.HandlerFunc {
     "http://localhost:8081",    
 	"https://havamal.cat",
 	"https://www.havamal.cat",
+	"http://havamal.cat",
+	"http://www.havamal.cat",
 }
 	corsConfig.AllowMethods = []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}
 	corsConfig.AllowHeaders = []string{"Origin", "Content-Type", "Authorization"}
