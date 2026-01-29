@@ -3,6 +3,7 @@ package posts
 import (
 	"context"
 	"havamal-api/internal/users"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -53,6 +54,14 @@ func (service *service) CreatePost(post *Request) error {
 		}
 	}
 
+	now := time.Now()
+	var publishedAt time.Time
+	
+	// Set published_at only if status is published
+	if post.Status == Published {
+		publishedAt = now
+	}
+
 	newPostId := uuid.New()
 	err = service.repo.CreatePost(&Post{
 		ID:          newPostId,
@@ -61,9 +70,10 @@ func (service *service) CreatePost(post *Request) error {
 		Summary:     post.Summary,
 		Content:     post.Content,
 		Status:      post.Status,
-		PublishedAt: post.PublishedAt,
-		UpdatedAt:   post.UpdatedAt,
+		PublishedAt: publishedAt,
+		UpdatedAt:   now,
 		AuthorId:    authorId,
+		Columns:     post.Columns,
 	})
 	if err != nil {
 		return err
@@ -133,6 +143,14 @@ func (service *service) UpdatePost(id string, post *Request) error {
 		}
 	}
 
+	now := time.Now()
+	publishedAt := existingPost.PublishedAt
+	
+	// Set published_at if transitioning to published status
+	if post.Status == Published && existingPost.Status != Published {
+		publishedAt = now
+	}
+
 	return service.repo.UpdatePost(&Post{
 		ID:          parsedId,
 		Title:       post.Title,
@@ -140,9 +158,10 @@ func (service *service) UpdatePost(id string, post *Request) error {
 		Summary:     post.Summary,
 		Content:     post.Content,
 		Status:      post.Status,
-		PublishedAt: post.PublishedAt,
-		UpdatedAt:   post.UpdatedAt,
+		PublishedAt: publishedAt,
+		UpdatedAt:   now,
 		AuthorId:    authorId,
+		Columns:     post.Columns,
 	})
 }
 

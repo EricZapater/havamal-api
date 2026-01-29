@@ -29,13 +29,34 @@ func (s *service) Create(request *Request) (*Navigation, error) {
 		parentID = &parsed
 	}
 
+	var categoryID *uuid.UUID
+	if request.CategoryId != "" {
+		parsed, err := uuid.Parse(request.CategoryId)
+		if err != nil {
+			return nil, err
+		}
+		categoryID = &parsed
+	}
+
+	var postID *uuid.UUID
+	if request.PostId != "" {
+		parsed, err := uuid.Parse(request.PostId)
+		if err != nil {
+			return nil, err
+		}
+		postID = &parsed
+	}
+
 	navigation := Navigation{
-		ID:       uuid.New(),
-		Label:    request.Label,
-		Slug:     request.Slug,
-		Type:     request.Type,
-		Order:    request.Order,
-		ParentId: parentID,
+		ID:         uuid.New(),
+		Label:      request.Label,
+		Slug:       request.Slug,
+		Type:       request.Type,
+		Order:      request.Order,
+		ParentId:   parentID,
+		LinkSource: request.LinkSource,
+		CategoryId: categoryID,
+		PostId:     postID,
 	}
 	if err := s.repository.Create(&navigation); err != nil {
 		return nil, err
@@ -73,13 +94,34 @@ func (s *service) Update(id string, request *Request) (*Navigation, error) {
 		parentID = &parsed
 	}
 
+	var categoryID *uuid.UUID
+	if request.CategoryId != "" {
+		parsed, err := uuid.Parse(request.CategoryId)
+		if err != nil {
+			return nil, err
+		}
+		categoryID = &parsed
+	}
+
+	var postID *uuid.UUID
+	if request.PostId != "" {
+		parsed, err := uuid.Parse(request.PostId)
+		if err != nil {
+			return nil, err
+		}
+		postID = &parsed
+	}
+
 	navigation := Navigation{
-		ID:       parsedId,
-		Label:    request.Label,
-		Slug:     request.Slug,
-		Type:     request.Type,
-		Order:    request.Order,
-		ParentId: parentID,
+		ID:         parsedId,
+		Label:      request.Label,
+		Slug:       request.Slug,
+		Type:       request.Type,
+		Order:      request.Order,
+		ParentId:   parentID,
+		LinkSource: request.LinkSource,
+		CategoryId: categoryID,
+		PostId:     postID,
 	}
 	if err := s.repository.Update(parsedId, &navigation); err != nil {
 		return nil, err
