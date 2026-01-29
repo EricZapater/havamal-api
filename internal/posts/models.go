@@ -25,6 +25,7 @@ type Request struct {
 	AuthorId 	string `json:"author_id"`
 	Author      string `json:"author"`
 	CategoryId  string `json:"categoryId"`
+	Columns int	`json:"columns"`
 }
 
 type Post struct {
@@ -37,6 +38,7 @@ type Post struct {
 	PublishedAt 	time.Time `json:"published_at"`	
 	UpdatedAt 	time.Time `json:"updated_at"`
 	AuthorId 	uuid.UUID `json:"author_id"`
+	Columns int	`json:"columns"`
 }
 
 type Response struct{
@@ -54,7 +56,7 @@ type Response struct{
 	CategoryDescription string `json:"category_description"`
 	CategorySlug string `json:"category_slug"`
 	AuthorName string `json:"author_name"`
-
+	Columns int	`json:"columns"`
 }
 
 type PostCategories struct {

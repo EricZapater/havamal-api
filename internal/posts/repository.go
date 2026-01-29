@@ -31,9 +31,9 @@ func NewRepository(db *sql.DB) Repository {
 }
 
 func (r *repository) CreatePost(post *Post) error {
-	query := `INSERT INTO posts (id, title, slug, summary, content, status, published_at, updated_at, author_id)
-	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`	
-	_, err := r.db.Exec(query, post.ID, post.Title, post.Slug, post.Summary, post.Content, post.Status, post.PublishedAt, post.UpdatedAt, post.AuthorId)
+	query := `INSERT INTO posts (id, title, slug, summary, content, status, published_at, updated_at, author_id, columns)
+	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`	
+	_, err := r.db.Exec(query, post.ID, post.Title, post.Slug, post.Summary, post.Content, post.Status, post.PublishedAt, post.UpdatedAt, post.AuthorId, post.Columns)
 	if err != nil {
 		return err
 	}
@@ -43,7 +43,7 @@ func (r *repository) CreatePost(post *Post) error {
 func (r *repository) GetPost(id uuid.UUID) (*Response, error) {
 	query := `SELECT p.id, p.title, p.slug, p.summary, p.content, p.status, p.published_at, 
 					p.updated_at, p.author_id, pc.category_id, c.name as category_name, c.description as category_description, 
-					c.slug as category_slug, u.username as author_name
+					c.slug as category_slug, u.username as author_name, p.columns
 	FROM posts p
 		INNER JOIN post_categories pc ON p.Id = pc.post_id
 		INNER JOIN categories c ON pc.category_id = c.id
@@ -53,7 +53,7 @@ func (r *repository) GetPost(id uuid.UUID) (*Response, error) {
 	var post Response
 	if err := row.Scan(&post.ID, &post.Title, &post.Slug, &post.Summary, &post.Content, &post.Status, &post.PublishedAt, 
 						&post.UpdatedAt, &post.AuthorId, &post.CategoryId, &post.CategoryName, &post.CategoryDescription, 
-						&post.CategorySlug, &post.AuthorName); err != nil {
+						&post.CategorySlug, &post.AuthorName, &post.Columns); err != nil {
 		return nil, err
 	}
 	return &post, nil
@@ -62,7 +62,7 @@ func (r *repository) GetPost(id uuid.UUID) (*Response, error) {
 func (r *repository) GetPosts() ([]Response, error) {
 	query := `SELECT p.id, p.title, p.slug, p.summary, p.content, p.status, p.published_at, 
 					p.updated_at, p.author_id, pc.category_id, c.name as category_name, c.description as category_description, 
-					c.slug as category_slug, u.username as author_name
+					c.slug as category_slug, u.username as author_name, p.columns
 	FROM posts p
 		INNER JOIN post_categories pc ON p.Id = pc.post_id
 		INNER JOIN categories c ON pc.category_id = c.id
@@ -77,7 +77,7 @@ func (r *repository) GetPosts() ([]Response, error) {
 		var post Response
 		if err := rows.Scan(&post.ID, &post.Title, &post.Slug, &post.Summary, &post.Content, &post.Status, &post.PublishedAt, 
 							&post.UpdatedAt, &post.AuthorId, &post.CategoryId, &post.CategoryName, &post.CategoryDescription, 
-							&post.CategorySlug, &post.AuthorName); err != nil {
+							&post.CategorySlug, &post.AuthorName, &post.Columns); err != nil {
 			return nil, err
 		}
 		posts = append(posts, post)
@@ -88,7 +88,7 @@ func (r *repository) GetPosts() ([]Response, error) {
 func (r *repository) GetPublishedPosts() ([]Response, error) {
 	query := `SELECT p.id, p.title, p.slug, p.summary, p.content, p.status, p.published_at, 
 					p.updated_at, p.author_id, pc.category_id, c.name as category_name, c.description as category_description, 
-					c.slug as category_slug, u.username as author_name
+					c.slug as category_slug, u.username as author_name, p.columns
 	FROM posts p
 		INNER JOIN post_categories pc ON p.Id = pc.post_id
 		INNER JOIN categories c ON pc.category_id = c.id
@@ -104,7 +104,7 @@ func (r *repository) GetPublishedPosts() ([]Response, error) {
 		var post Response
 		if err := rows.Scan(&post.ID, &post.Title, &post.Slug, &post.Summary, &post.Content, &post.Status, &post.PublishedAt, 
 							&post.UpdatedAt, &post.AuthorId, &post.CategoryId, &post.CategoryName, &post.CategoryDescription, 
-							&post.CategorySlug, &post.AuthorName); err != nil {
+							&post.CategorySlug, &post.AuthorName, &post.Columns); err != nil {
 			return nil, err
 		}
 		posts = append(posts, post)
@@ -115,7 +115,7 @@ func (r *repository) GetPublishedPosts() ([]Response, error) {
 func (r *repository) GetPostsByAuthor(authorId uuid.UUID) ([]Response, error) {
 	query := `SELECT p.id, p.title, p.slug, p.summary, p.content, p.status, p.published_at, 
 					p.updated_at, p.author_id, pc.category_id, c.name as category_name, c.description as category_description, c.slug as category_slug,
-					u.username
+					u.username, p.columns
 	FROM posts p
 		INNER JOIN post_categories pc ON p.Id = pc.post_id
 		INNER JOIN categories c ON pc.category_id = c.id
@@ -131,7 +131,7 @@ func (r *repository) GetPostsByAuthor(authorId uuid.UUID) ([]Response, error) {
 		var post Response
 		if err := rows.Scan(&post.ID, &post.Title, &post.Slug, &post.Summary, &post.Content, &post.Status, &post.PublishedAt, 
 							&post.UpdatedAt, &post.AuthorId, &post.CategoryId, &post.CategoryName, &post.CategoryDescription, &post.CategorySlug,
-							&post.AuthorName); err != nil {
+							&post.AuthorName, &post.Columns); err != nil {
 			return nil, err
 		}
 		posts = append(posts, post)
@@ -142,7 +142,7 @@ func (r *repository) GetPostsByAuthor(authorId uuid.UUID) ([]Response, error) {
 func (r *repository) GetPostBySlug(slug string) (*Response, error) {
 	query := `SELECT p.id, p.title, p.slug, p.summary, p.content, p.status, p.published_at, 
 					p.updated_at, p.author_id, pc.category_id, c.name as category_name, c.description as category_description, c.slug as category_slug,
-					u.username
+					u.username, p.columns
 	FROM posts p
 		INNER JOIN post_categories pc ON p.Id = pc.post_id
 		INNER JOIN categories c ON pc.category_id = c.id
@@ -152,7 +152,7 @@ func (r *repository) GetPostBySlug(slug string) (*Response, error) {
 	var post Response
 	if err := row.Scan(&post.ID, &post.Title, &post.Slug, &post.Summary, &post.Content, &post.Status, &post.PublishedAt, 
 						&post.UpdatedAt, &post.AuthorId, &post.CategoryId, &post.CategoryName, &post.CategoryDescription, &post.CategorySlug,
-						&post.AuthorName); err != nil {
+						&post.AuthorName, &post.Columns); err != nil {
 		return nil, err
 	}
 	return &post, nil
@@ -164,7 +164,7 @@ func (r *repository) GetSummariesByCategory(category string) ([]Response, error)
     // Given the previous broken query 'WHERE category = $1', assuming ID matching on join for now.
 	query := `SELECT p.id, p.title, p.slug, p.summary, p.content, p.status, p.published_at, 
 					p.updated_at, p.author_id, pc.category_id, c.name as category_name, c.description as category_description, c.slug as category_slug,
-					u.username
+					u.username, p.columns
 	FROM posts p
 		INNER JOIN post_categories pc ON p.Id = pc.post_id
 		INNER JOIN categories c ON pc.category_id = c.id
@@ -180,7 +180,7 @@ func (r *repository) GetSummariesByCategory(category string) ([]Response, error)
 		var post Response
 		if err := rows.Scan(&post.ID, &post.Title, &post.Slug, &post.Summary, &post.Content, &post.Status, &post.PublishedAt, 
 							&post.UpdatedAt, &post.AuthorId, &post.CategoryId, &post.CategoryName, &post.CategoryDescription, &post.CategorySlug,
-							&post.AuthorName); err != nil {
+							&post.AuthorName, &post.Columns); err != nil {
 			return nil, err
 		}
 		posts = append(posts, post)
@@ -190,9 +190,9 @@ func (r *repository) GetSummariesByCategory(category string) ([]Response, error)
 
 func (r *repository) UpdatePost(post *Post) error {
 	query := `UPDATE posts
-	SET title = $2, slug = $3, summary = $4, content = $5, status = $6, published_at = $7, updated_at = $8, author_id = $9
+	SET title = $2, slug = $3, summary = $4, content = $5, status = $6, published_at = $7, updated_at = $8, author_id = $9, columns = $10
 	WHERE id = $1`
-	_, err := r.db.Exec(query, post.ID, post.Title, post.Slug, post.Summary, post.Content, post.Status, post.PublishedAt, post.UpdatedAt, post.AuthorId)
+	_, err := r.db.Exec(query, post.ID, post.Title, post.Slug, post.Summary, post.Content, post.Status, post.PublishedAt, post.UpdatedAt, post.AuthorId, post.Columns)
 	if err != nil {
 		return err
 	}

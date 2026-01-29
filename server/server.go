@@ -4,6 +4,7 @@ import (
 	"havamal-api/config"
 	"havamal-api/internal/auth"
 	"havamal-api/internal/categories"
+	"havamal-api/internal/images"
 	"havamal-api/internal/navigation"
 	"havamal-api/internal/posts"
 	"havamal-api/internal/versions"
@@ -65,6 +66,7 @@ func(s *Server)Setup()error{
 	categoryHandler := categories.NewHandler(categoryService)
 	versionHandler := versions.NewHandler(versionService)
 	navigationHandler := navigation.NewHandler(navigationService)
+	imageHandler := images.NewHandler()
 
 	s.router.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "OK"})
@@ -72,6 +74,9 @@ func(s *Server)Setup()error{
 
 	// Prometheus metrics endpoint
 	s.router.GET("/metrics", gin.WrapH(promhttp.Handler()))
+
+	// Serve static files from images directory
+	s.router.Static("/images", "../images")
 
 	// Public routes
 	public := s.router.Group("/auth")
@@ -94,6 +99,7 @@ func(s *Server)Setup()error{
 	categories.RegisterRoutes(protected, &categoryHandler)		
 	versions.RegisterRoutes(protected, &versionHandler)		
 	navigation.RegisterRoutes(protected, &navigationHandler)
+	images.RegisterRoutes(protected, &imageHandler)
 
 	return nil
 	
